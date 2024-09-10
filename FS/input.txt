@@ -1,0 +1,1 @@
+Hello, Node i have add new data!
