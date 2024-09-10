@@ -15,7 +15,7 @@ fs.readFile(file, 'utf8', (err, data) => {
       if (err) {
         return console.error(`Error reading file: ${err}`);
       }
-      console.log('After appending:', updatedData);
+      console.log('After Update Text:', updatedData);
     });
   });
 });
