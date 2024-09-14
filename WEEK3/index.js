@@ -9,7 +9,7 @@ let products = [
   { id: 2, name: 'Product 2', price: 30.0 },
 ];
 
-app.get('/home', (req, res) => {
+app.get('/api/home', (req, res) => {
   res.send('Welcome to the product server');
 });
 
@@ -20,7 +20,7 @@ app.get('/api/product', (req, res) => {
 app.get('/api/product/:id', (req, res) => {
   const product = getProduct(parseInt(req.params.id));
   if (!product) {
-    res.status(404).send('Product not found');
+    return res.status(404).send('Product not found');
   }
   res.send(product);
 });
@@ -54,6 +54,16 @@ app.put('/api/product/:id', (req, res) => {
 
   product.name = value.name;
   product.price = value.price;
+  res.send(product);
+});
+
+app.delete('/api/product/:id', (req, res) => {
+  const product = getProduct(parseInt(req.params.id));
+  if (!product) {
+    return res.status(404).send('Product not found');
+  }
+  const index = products.indexOf(product);
+  products.splice(index, 1);
   res.send(product);
 });
 
