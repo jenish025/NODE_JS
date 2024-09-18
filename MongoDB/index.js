@@ -14,13 +14,64 @@ const productSchema = new mongoose.Schema({
 });
 
 const Product = mongoose.model('Product', productSchema);
-const product = new Product({
-  name: '17',
-  price: 5000,
-  tags: ['phone', 'electronics'],
-});
 
-product
-  .save()
-  .then((result) => console.log(result))
-  .catch((err) => console.error(err));
+async function createProduct() {
+  try {
+    const product = new Product({
+      name: 'Iphone 12',
+      price: 5000,
+      tags: ['phone', 'electronics'],
+      isInStock: true,
+    });
+
+    const result = await product.save();
+    console.log(result);
+  } catch (err) {
+    console.log(err.message);
+  }
+}
+
+const getProductsList = async () => {
+  try {
+    const productList = await Product.find({})
+      .limit(10)
+      .sort({ name: 1 })
+      .select({ name: 1, price: 1 });
+    console.log(productList);
+  } catch (err) {
+    console.log(err.message);
+  }
+};
+
+const updateProduct = async (id) => {
+  try {
+    const product = await Product.findByIdAndUpdate(
+      id,
+      {
+        $set: {
+          name: 'Iphone 13',
+          price: 6000,
+          tags: ['phone', 'electronics', 'new', '2024'],
+        },
+      },
+      { new: true }
+    );
+
+    console.log(product);
+  } catch (err) {
+    console.log(err.message);
+  }
+};
+const removeProduct = async (id) => {
+  try {
+    const product = await Product.deleteOne({ _id: id });
+
+    console.log(product);
+  } catch (err) {
+    console.log(err.message);
+  }
+};
+// createProduct();
+// getProductsList();
+// updateProduct('66e919ca4166e4ded6810986');
+removeProduct('66e919ca4166e4ded6810986');
