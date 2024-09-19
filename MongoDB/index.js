@@ -1,3 +1,4 @@
+const { required } = require('joi');
 const mongoose = require('mongoose');
 
 mongoose
@@ -6,10 +7,23 @@ mongoose
   .catch((err) => console.error('Could not connect to MongoDB', err));
 
 const productSchema = new mongoose.Schema({
-  name: String,
-  price: Number,
+  name: { type: String, required: true, minlength: 5, maxlength: 10 },
+  price: {
+    type: Number,
+    required: function () {
+      return this.isInStock;
+    },
+  },
   date: { type: Date, default: Date.now },
-  tags: [String],
+  tags: {
+    type: Array,
+    validate: {
+      validator: function (v) {
+        return v && v.length > 0;
+      },
+      message: 'A product should have at least one tag',
+    },
+  },
   isInStock: Boolean,
 });
 
@@ -71,7 +85,7 @@ const removeProduct = async (id) => {
     console.log(err.message);
   }
 };
-// createProduct();
+createProduct();
 // getProductsList();
 // updateProduct('66e919ca4166e4ded6810986');
-removeProduct('66e919ca4166e4ded6810986');
+// removeProduct('66e919ca4166e4ded6810986');
