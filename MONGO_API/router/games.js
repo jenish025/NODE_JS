@@ -7,11 +7,8 @@ const Games = mongoose.model(
   'Gameses',
   new mongoose.Schema({
     name: { type: String, required: true, minlength: 1, maxlength: 50 },
-    price: { type: Number, required: true, min: 0 },
-    isFree: {
-      type: Boolean,
-      required: true,
-    },
+    price: { type: Number, min: 0 },
+    isFree: { type: Boolean },
     tags: {
       type: Array,
       validate: {
@@ -21,6 +18,12 @@ const Games = mongoose.model(
         message: 'A Games should have at least one tag',
       },
       required: true,
+      set: function (v) {
+        if (typeof v === 'string') {
+          return v.split(',').map((tag) => tag.trim().toUpperCase());
+        }
+        return v.map((tag) => tag.toUpperCase());
+      },
     },
     date: { type: Date, default: Date.now },
     isReleased: {
@@ -29,27 +32,23 @@ const Games = mongoose.model(
     },
     avalibalCopies: {
       type: Number,
-      required: function () {
-        return this.isReleased;
-      },
     },
     trailer: {
       type: String,
-      required: function () {
-        return this.isReleased;
-      },
     },
     availbalePlatforms: {
       type: Array,
-      required: function () {
-        return this.isReleased && this.avalibalCopies > 0;
+      set: function (v) {
+        if (typeof v === 'string') {
+          return v.split(',').map((tag) => tag.trim().toUpperCase());
+        }
+        return v.map((tag) => tag.toUpperCase());
       },
     },
   })
 );
 
 // GET /api/gameses
-
 router.get('/', async (req, res) => {
   try {
     const gameList = await Games.find({}).limit(10).sort({ name: 1 });
@@ -59,28 +58,17 @@ router.get('/', async (req, res) => {
   }
 });
 
-// GET /api/gameses/id
-
-router.get('/:id', (req, res) => {
-  const product = getProduct(parseInt(req.params.id));
-  if (!product) {
-    return res.status(404).send('Product not found');
-  }
-  res.send(product);
-});
-
 // POST /api/products
-
 router.post('/', async (req, res) => {
   const value = req.body;
   try {
     let newGame = new Games({
       name: value.name,
       price: value.price,
-      isFree: value.isFree,
+      isFree: value.price === 0,
       tags: value.tags,
       isReleased: value.isReleased,
-      avalibalCopies: value.avalibalCopies,
+      avalibalCopies: value.isReleased ? value.avalibalCopies : 0,
       trailer: value.trailer,
       availbalePlatforms: value.availbalePlatforms,
     });
@@ -95,22 +83,38 @@ router.post('/', async (req, res) => {
 
 // PUT /api/products/1
 
-// router.put('/:id', (req, res) => {
-//   const product = getProduct(parseInt(req.params.id));
-//   if (!product) {
-//     return res.status(404).send('Product not found');
-//   }
+router.put('/:id', async (req, res) => {
+  try {
+    const upadteById = await Games.findByIdAndUpdate(req.params.id, {
+      $set: {
+        name: req.body.name,
+        price: req.body.price,
+        isFree: req.body.price === 0,
+        tags: req.body.tags,
+        isReleased: req.body.isReleased,
+        avalibalCopies: req.body.avalibalCopies,
+        trailer: req.body.trailer,
+        availbalePlatforms: req.body.availbalePlatforms,
+      },
+    });
 
-//   const { error, value } = validateProduct(req.body);
+    res.send(upadteById);
+  } catch (err) {
+    return res
+      .status(400)
+      .send(err?.message || 'Something went wrong while updating a game');
+  }
+});
 
-//   if (error) {
-//     return res.status(400).send(error.details[0].message);
-//   }
+// GET /api/gameses/id
 
-//   product.name = value.name;
-//   product.price = value.price;
-//   res.send(product);
-// });
+router.get('/:id', async (req, res) => {
+  const gameById = await Games.findById(req.params.id);
+  if (!gameById) {
+    return res.status(404).send('Product not found');
+  }
+  res.send(gameById);
+});
 
 // DELETE /api/products/1
 
