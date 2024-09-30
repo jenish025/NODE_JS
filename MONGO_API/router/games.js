@@ -1,4 +1,5 @@
 const { Games } = require('../models/games');
+const { User } = require('../models/user');
 const express = require('express');
 const router = express.Router();
 const mongoose = require('mongoose');
@@ -17,8 +18,9 @@ router.get('/', async (req, res) => {
 });
 
 // POST /api/games - Create a new game
-router.post('/', async (req, res) => {
+router.post('/:id', async (req, res) => {
   try {
+    const { id } = req.params;
     const {
       name,
       price,
@@ -29,6 +31,11 @@ router.post('/', async (req, res) => {
       availablePlatforms,
     } = req.body;
 
+    const findUserById = await User.findById(id);
+    if (!findUserById) {
+      return res.status(404).send({ error: 'User not found' });
+    }
+
     const newGame = new Games({
       name,
       price,
@@ -38,10 +45,18 @@ router.post('/', async (req, res) => {
       availableCopies: isReleased ? availableCopies : 0,
       trailer,
       availablePlatforms,
+      gameCreatorId: findUserById._id,
+      gameCreatorInfo: {
+        name: findUserById.name,
+        email: findUserById.email,
+      },
     });
 
     const savedGame = await newGame.save();
+    findUserById.gamesCreated.push(savedGame._id);
+    await findUserById.save();
     res.status(201).send(savedGame);
+    // console.log(newGame, findUserById);
   } catch (err) {
     res.status(400).send({ error: err.message || 'Error creating game' });
   }
@@ -108,9 +123,21 @@ router.delete('/:id', async (req, res) => {
   }
 
   try {
+    // Find the game by ID first
+    const game = await Games.findById(id);
+    if (!game) {
+      return res.status(404).send({ error: 'Game not found' });
+    }
     const deleteResult = await Games.deleteOne({ _id: id });
     if (deleteResult.deletedCount === 0) {
       return res.status(404).send({ error: 'Game not found' });
+    }
+    const user = await User.findById(game.gameCreatorId);
+    if (user) {
+      user.gamesCreated = user.gamesCreated.filter(
+        (gameId) => gameId.toString() !== id
+      );
+      await user.save(); // Save the updated user
     }
     res.status(200).send({ message: 'Game deleted successfully' });
   } catch (err) {
