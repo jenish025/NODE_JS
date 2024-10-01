@@ -3,8 +3,9 @@ const express = require('express');
 const app = express();
 const gameses = require('./router/games');
 const home = require('./router/home');
-const user = require('./router/user');
+const user = require('./router/registerUser');
 const buyGames = require('./router/buyGames');
+const auth = require('./router/authLogin');
 
 mongoose
   .connect('mongodb://localhost/gameses')
@@ -14,7 +15,8 @@ mongoose
 app.use(express.json());
 app.use('/api/home', home);
 app.use('/api/gameses', gameses);
-app.use('/api/user', user);
+app.use('/api/user/singup', user);
+app.use('/api/user/login', auth);
 app.use('/api/buygames', buyGames);
 
 app.listen(3000, () => {
