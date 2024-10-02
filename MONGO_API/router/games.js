@@ -1,5 +1,6 @@
 const { Games } = require('../models/games');
 const { User } = require('../models/user');
+const authentication = require('../middlewares/authentication');
 const express = require('express');
 const router = express.Router();
 const mongoose = require('mongoose');
@@ -18,7 +19,7 @@ router.get('/', async (req, res) => {
 });
 
 // POST /api/games - Create a new game
-router.post('/:id', async (req, res) => {
+router.post('/:id', authentication, async (req, res) => {
   try {
     const { id } = req.params;
     const {
@@ -31,7 +32,11 @@ router.post('/:id', async (req, res) => {
       availablePlatforms,
     } = req.body;
 
+    if (id != req.user._id) {
+      return res.status(401).send({ error: 'Unauthorized' });
+    }
     const findUserById = await User.findById(id);
+
     if (!findUserById) {
       return res.status(404).send({ error: 'User not found' });
     }
@@ -63,13 +68,15 @@ router.post('/:id', async (req, res) => {
 });
 
 // PUT /api/games/:id - Update an existing game
-router.put('/:id', async (req, res) => {
-  const { id } = req.params;
-  if (!isValidObjectId(id)) {
-    return res.status(400).send({ error: 'Invalid game ID' });
-  }
-
+router.put('/:id', authentication, async (req, res) => {
   try {
+    const { id } = req.params;
+    if (id != req.user._id) {
+      return res.status(401).send({ error: 'Unauthorized' });
+    }
+    if (!isValidObjectId(id)) {
+      return res.status(400).send({ error: 'Invalid game ID' });
+    }
     const updatedGame = await Games.findByIdAndUpdate(
       id,
       {
@@ -98,13 +105,13 @@ router.put('/:id', async (req, res) => {
 });
 
 // GET /api/games/:id - Get game by ID
-router.get('/:id', async (req, res) => {
-  const { id } = req.params;
-  if (!isValidObjectId(id)) {
-    return res.status(400).send({ error: 'Invalid game ID' });
-  }
-
+router.get('/:id', authentication, async (req, res) => {
   try {
+    const { id } = req.params;
+
+    if (!isValidObjectId(id)) {
+      return res.status(400).send({ error: 'Invalid game ID' });
+    }
     const game = await Games.findById(id);
     if (!game) {
       return res.status(404).send({ error: 'Game not found' });
@@ -116,13 +123,15 @@ router.get('/:id', async (req, res) => {
 });
 
 // DELETE /api/games/:id - Delete a game by ID
-router.delete('/:id', async (req, res) => {
-  const { id } = req.params;
-  if (!isValidObjectId(id)) {
-    return res.status(400).send({ error: 'Invalid game ID' });
-  }
-
+router.delete('/:id', authentication, async (req, res) => {
   try {
+    const { id } = req.params;
+    if (id != req.user._id) {
+      return res.status(401).send({ error: 'Unauthorized' });
+    }
+    if (!isValidObjectId(id)) {
+      return res.status(400).send({ error: 'Invalid game ID' });
+    }
     // Find the game by ID first
     const game = await Games.findById(id);
     if (!game) {

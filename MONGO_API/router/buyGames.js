@@ -1,16 +1,19 @@
 const mongoose = require('mongoose');
-const { Games } = require('../models/games');
-const { User } = require('../models/user');
 const express = require('express');
 const router = express.Router();
+const { Games } = require('../models/games');
+const { User } = require('../models/user');
+const authentication = require('../middlewares/authentication');
 
 const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 
-router.post('/:id', async (req, res) => {
-  const { id } = req.params;
+router.post('/:id', authentication, async (req, res) => {
+  const { id } = req.params; // game id
   const { userId } = req.body; // User ID will be passed in the request body
 
-  console.log(id, userId);
+  if (userId != req.user._id) {
+    return res.status(401).send({ error: 'Unauthorized' });
+  }
 
   if (!isValidObjectId(id) || !isValidObjectId(userId)) {
     return res.status(400).send({ error: 'Invalid game or user ID' });

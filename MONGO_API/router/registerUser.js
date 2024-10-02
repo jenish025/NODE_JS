@@ -20,7 +20,11 @@ router.post('/', async (req, res) => {
       password: hashedPassword,
     });
     const saveUser = await newUser.save();
-    res.status(201).send(_.pick(saveUser, ['_id', 'name', 'email']));
+    const token = saveUser.generateAuthToken();
+    res
+      .header('x-auth-token', token)
+      .status(201)
+      .send(_.pick(saveUser, ['_id', 'name', 'email']));
   } catch (err) {
     res.status(400).send({ error: err.message || 'Somthing went wrong' });
   }

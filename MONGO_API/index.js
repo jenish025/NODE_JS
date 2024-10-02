@@ -1,11 +1,17 @@
 const mongoose = require('mongoose');
 const express = require('express');
+const congfig = require('config');
 const app = express();
 const gameses = require('./router/games');
 const home = require('./router/home');
 const user = require('./router/registerUser');
 const buyGames = require('./router/buyGames');
 const auth = require('./router/authLogin');
+
+if (!congfig.get('jwtSecret')) {
+  console.error('FATAL ERROR: jwtSecret is not defined');
+  process.exit(1);
+}
 
 mongoose
   .connect('mongodb://localhost/gameses')
