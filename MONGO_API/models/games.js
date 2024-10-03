@@ -34,14 +34,6 @@ const gameSchema = new mongoose.Schema(
         return v.map((platform) => platform.toUpperCase());
       },
     },
-    gameCreatorId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'users',
-    },
-    gameCreatorInfo: {
-      name: { type: String },
-      email: { type: String },
-    },
   },
   { versionKey: false } // Exclude __v from the schema
 );

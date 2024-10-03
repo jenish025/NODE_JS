@@ -1,25 +1,26 @@
 const mongoose = require('mongoose');
 const express = require('express');
 const router = express.Router();
-const { Games } = require('../models/games');
-const { User } = require('../models/user');
 const authentication = require('../middlewares/authentication');
+const { UserGamesBought } = require('../models/userGamesBuy');
+const { UserGamesCreate } = require('../models/userGamesCreate');
+const { User } = require('../models/user');
+const { Games } = require('../models/games');
 
 const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 
 router.post('/:id', authentication, async (req, res) => {
-  const { id } = req.params; // game id
-  const { userId } = req.body; // User ID will be passed in the request body
-
-  if (userId != req.user._id) {
-    return res.status(401).send({ error: 'Unauthorized' });
-  }
-
-  if (!isValidObjectId(id) || !isValidObjectId(userId)) {
-    return res.status(400).send({ error: 'Invalid game or user ID' });
-  }
-
   try {
+    const { id } = req.params; // game id
+    const { userId } = req.body; // User ID will be passed in the request body
+
+    if (userId != req.user._id) {
+      return res.status(401).send({ error: 'Unauthorized' });
+    }
+
+    if (!isValidObjectId(id) || !isValidObjectId(userId)) {
+      return res.status(400).send({ error: 'Invalid game or user ID' });
+    }
     // Find the game and the user
     const game = await Games.findById(id);
     const user = await User.findById(userId);
@@ -31,34 +32,41 @@ router.post('/:id', authentication, async (req, res) => {
     if (!user) {
       return res.status(404).send({ error: 'User not found' });
     }
+    const userBoughtGames = await UserGamesBought.findOne({
+      userId,
+      gameBoughtId: id,
+    });
+    const userCreatedGames = await UserGamesCreate.findOne({
+      userId,
+      gameCreatedId: id,
+    });
 
-    // Check if the user is the game creator
-    if (game.gameCreatorId.toString() === userId) {
+    if (userCreatedGames) {
       return res
         .status(403)
         .send({ error: 'Game creators cannot buy their own games' });
     }
 
-    // Check if there are available copies
     if (game.availableCopies <= 0) {
       return res.status(400).send({ error: 'No available copies left' });
     }
 
-    // Check if the user already bought the game
-    if (user.boughtGames.includes(id)) {
+    if (userBoughtGames) {
       return res.status(400).send({ error: 'User already bought this game' });
     }
 
-    // Decrement the availableCopies count for the game
+    const userGamesBought = await UserGamesBought({
+      userId: userId,
+      gameBoughtId: id,
+    });
+
     game.availableCopies -= 1;
-    await game.save(); // Save the updated game
+    await game.save();
 
-    // Add the game to the user's boughtGames array
-    user.boughtGames.push(game._id);
-    await user.save(); // Save the updated user
-
-    // Respond with a success message
-    res.status(200).send({ message: 'Game purchased successfully', game });
+    const userGamesBoughtResult = await userGamesBought.save();
+    res
+      .status(200)
+      .send({ message: 'Game purchased successfully', userGamesBoughtResult });
   } catch (err) {
     console.error('Error buying game:', err);
     res.status(500).send({ error: 'Error processing game purchase' });

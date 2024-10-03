@@ -12,19 +12,6 @@ const userSchema = new mongoose.Schema(
     },
     password: { type: String, required: true, minlength: 4, maxlength: 1050 },
     isAdmin: { type: Boolean, default: false },
-    gameId: { type: mongoose.Schema.Types.ObjectId, ref: 'Games' },
-    gamesCreated: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'games', // Reference to the games created by the user
-      },
-    ],
-    boughtGames: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Games', // Reference to games bought by the user
-      },
-    ],
   },
   { versionKey: false } // Exclude __v from the schema
 );

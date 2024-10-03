@@ -4,6 +4,7 @@ const authentication = require('../middlewares/authentication');
 const express = require('express');
 const router = express.Router();
 const mongoose = require('mongoose');
+const { UserGamesCreate } = require('../models/userGamesCreate');
 
 // Helper function to validate MongoDB ObjectId
 const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
@@ -50,17 +51,22 @@ router.post('/:id', authentication, async (req, res) => {
       availableCopies: isReleased ? availableCopies : 0,
       trailer,
       availablePlatforms,
-      gameCreatorId: findUserById._id,
       gameCreatorInfo: {
         name: findUserById.name,
         email: findUserById.email,
       },
     });
 
-    const savedGame = await newGame.save();
-    findUserById.gamesCreated.push(savedGame._id);
-    await findUserById.save();
-    res.status(201).send(savedGame);
+    const newGameCreatorData = new UserGamesCreate({
+      userId: id,
+      gameCreatedId: newGame._id,
+    });
+
+    await newGame.save();
+    const savedGameCreatorData = await newGameCreatorData.save();
+    // findUserById.gamesCreated.push(savedGame._id);
+    // await findUserById.save();
+    res.status(201).send(savedGameCreatorData);
     // console.log(newGame, findUserById);
   } catch (err) {
     res.status(400).send({ error: err.message || 'Error creating game' });
