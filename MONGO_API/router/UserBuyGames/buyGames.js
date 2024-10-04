@@ -1,11 +1,11 @@
 const mongoose = require('mongoose');
 const express = require('express');
 const router = express.Router();
-const authentication = require('../middlewares/authentication');
-const { UserGamesBought } = require('../models/userGamesBuy');
-const { UserGamesCreate } = require('../models/userGamesCreate');
-const { User } = require('../models/user');
-const { Games } = require('../models/games');
+const authentication = require('../../middlewares/authentication');
+const { UserGamesBought } = require('../../models/userGamesBuy');
+const { UserGamesCreate } = require('../../models/userGamesCreate');
+const { User } = require('../../models/user');
+const { Games } = require('../../models/games');
 
 const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 

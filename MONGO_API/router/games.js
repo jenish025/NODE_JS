@@ -132,9 +132,9 @@ router.get('/:id', authentication, async (req, res) => {
 router.delete('/:id', authentication, async (req, res) => {
   try {
     const { id } = req.params;
-    if (id != req.user._id) {
-      return res.status(401).send({ error: 'Unauthorized' });
-    }
+    // if (id != req.user._id) {
+    //   return res.status(401).send({ error: 'Unauthorized' });
+    // }
     if (!isValidObjectId(id)) {
       return res.status(400).send({ error: 'Invalid game ID' });
     }
@@ -144,19 +144,19 @@ router.delete('/:id', authentication, async (req, res) => {
       return res.status(404).send({ error: 'Game not found' });
     }
     const deleteResult = await Games.deleteOne({ _id: id });
+    const deleteGameCreatorData = await UserGamesCreate.deleteOne({
+      gameCreatedId: id,
+    });
+
     if (deleteResult.deletedCount === 0) {
       return res.status(404).send({ error: 'Game not found' });
     }
-    const user = await User.findById(game.gameCreatorId);
-    if (user) {
-      user.gamesCreated = user.gamesCreated.filter(
-        (gameId) => gameId.toString() !== id
-      );
-      await user.save(); // Save the updated user
+    if (deleteGameCreatorData.deletedCount === 0) {
+      return res.status(404).send({ error: 'Game creator data not found' });
     }
     res.status(200).send({ message: 'Game deleted successfully' });
   } catch (err) {
-    res.status(500).send({ error: 'Error deleting game' });
+    res.status(500).send({ error: `${err}:error Delete a game by ID` });
   }
 });
 
