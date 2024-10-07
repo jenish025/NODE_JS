@@ -8,6 +8,7 @@ const user = require('./router/registerUser');
 const buyGames = require('./router/UserBuyGames/buyGames');
 const auth = require('./router/authLogin');
 const userInfo = require('./router/UserInfo/userInfo');
+const userMoney = require('./router/UserMoney/userwallet');
 
 if (!congfig.get('jwtSecret')) {
   console.error('FATAL ERROR: jwtSecret is not defined');
@@ -26,6 +27,7 @@ app.use('/api/user/singup', user);
 app.use('/api/user/login', auth);
 app.use('/api/buygames', buyGames);
 app.use('/api/userinfo', userInfo);
+app.use('/api/user/wallet', userMoney);
 
 app.listen(3000, () => {
   console.log(`Product server listening on ${3000}`);

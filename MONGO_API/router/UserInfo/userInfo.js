@@ -61,6 +61,11 @@ router.get('/:id', authentication, async (req, res) => {
 router.get('/games/buy/:id', authentication, async (req, res) => {
   try {
     const { id } = req.params;
+    if (id != req.user._id) {
+      return res.status(403).send({
+        error: 'forbidden! user does not have permission to access',
+      });
+    }
     if (!isValidObjectId(id)) {
       return res.status(400).send({ error: 'Invalid user ID' });
     }

@@ -3,6 +3,7 @@ const express = require('express');
 const router = express.Router();
 const _ = require('lodash');
 const { passwordHashing } = require('../controllers/passwordHashing');
+const { UserMoney } = require('../models/userMoney');
 
 router.post('/', async (req, res) => {
   try {
@@ -19,7 +20,13 @@ router.post('/', async (req, res) => {
       email,
       password: hashedPassword,
     });
+
     const saveUser = await newUser.save();
+    const userWallet = new UserMoney({
+      userId: saveUser._id,
+    });
+    await userWallet.save();
+
     const token = saveUser.generateAuthToken();
     res
       .header('x-auth-token', token)
