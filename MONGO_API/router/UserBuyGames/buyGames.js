@@ -139,16 +139,14 @@ router.post('/:id', authentication, async (req, res) => {
       cancel_url: 'http://localhost:3000/cancel',
     });
 
-    console.log(paymentStripe);
-
-    // await userWallet.save();
-    // await game.save();
-    // await gameCreaterWallet.save();
-    // const userGamesBoughtResult = await userGamesBought.save();
+    await userWallet.save();
+    await game.save();
+    await gameCreaterWallet.save();
+    const userGamesBoughtResult = await userGamesBought.save();
 
     res.status(200).send({
       message: 'Game purchased successfully',
-      // userGamesBoughtResult,
+      userGamesBoughtResult,
     });
   } catch (err) {
     console.error('Error buying game:', err);
