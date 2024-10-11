@@ -12,6 +12,11 @@ const userSchema = new mongoose.Schema(
     },
     password: { type: String, required: true, minlength: 4, maxlength: 1050 },
     isAdmin: { type: Boolean, default: false },
+    stripeCustomerId: {
+      type: String,
+      unique: true,
+      sparse: true, // Allows for unique values while permitting nulls
+    },
   },
   { versionKey: false } // Exclude __v from the schema
 );

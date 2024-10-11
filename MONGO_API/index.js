@@ -20,6 +20,7 @@ mongoose
   .then(() => console.log('Connected to MongoDB'))
   .catch((err) => console.error('Could not connect to MongoDB', err));
 
+app.set('view engine', 'ejs');
 app.use(express.json());
 app.use('/api/home', home);
 app.use('/api/gameses', gameses);

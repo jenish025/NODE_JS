@@ -7,6 +7,9 @@ const { UserGamesCreate } = require('../../models/userGamesCreate');
 const { User } = require('../../models/user');
 const { Games } = require('../../models/games');
 const { UserMoney } = require('../../models/userMoney');
+const stripe = require('stripe')(
+  'sk_test_51Q7s8OAWHP6mFb1qYV1RJMugzyE5ZD7IaDZn3iG41k7zuht2uN7dVwMpFIKwXhSCanRCAHupgJfaH8Xo2q5RZ2fH00l8cgkkMq'
+);
 
 const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 
@@ -95,11 +98,7 @@ router.post('/:id', authentication, async (req, res) => {
       // Deduct the price from the user's wallet
       userWallet.walletMoney -= game.price;
       userWallet.moneySpent += game.price;
-      userWallet.totalMoney =
-        (userWallet.walletMoney ?? 0) +
-        (userWallet.moneyEarned ?? 0) +
-        (userWallet.moneyReceivedAsGift ?? 0) -
-        game.price;
+      userWallet.totalMoney -= game.price;
 
       // Add the game price to the creator's wallet
       gameCreaterWallet.moneyEarned += game.price;
@@ -114,14 +113,42 @@ router.post('/:id', authentication, async (req, res) => {
       gameBoughtId: id,
     });
 
-    await userWallet.save();
-    await game.save();
-    await gameCreaterWallet.save();
-    const userGamesBoughtResult = await userGamesBought.save();
+    // Save the changes
+    const paymentStripe = await stripe.checkout.sessions.create({
+      mode: 'payment',
+      currency: 'usd',
+      customer: user.stripeCustomerId, // If using saved customers
+      line_items: [
+        {
+          price_data: {
+            currency: 'usd',
+            product_data: {
+              name: game.name,
+            },
+            unit_amount: game.price * 100,
+          },
+          quantity: 1,
+        },
+      ],
+      metadata: {
+        gameId: game._id.toHexString(),
+        gameCreatorId: gamecreaterInfo.userId.toHexString(),
+        gameBoughtId: userId,
+      },
+      success_url: 'http://localhost:3000/success',
+      cancel_url: 'http://localhost:3000/cancel',
+    });
+
+    console.log(paymentStripe);
+
+    // await userWallet.save();
+    // await game.save();
+    // await gameCreaterWallet.save();
+    // const userGamesBoughtResult = await userGamesBought.save();
 
     res.status(200).send({
       message: 'Game purchased successfully',
-      userGamesBoughtResult,
+      // userGamesBoughtResult,
     });
   } catch (err) {
     console.error('Error buying game:', err);
