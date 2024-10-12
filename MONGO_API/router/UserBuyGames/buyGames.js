@@ -139,6 +139,8 @@ router.post('/:id', authentication, async (req, res) => {
       cancel_url: 'http://localhost:3000/cancel',
     });
 
+    req.redirect(paymentStripe.url);
+
     await userWallet.save();
     await game.save();
     await gameCreaterWallet.save();
