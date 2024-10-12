@@ -11,6 +11,55 @@ const stripe = require('stripe')(
   'sk_test_51Q7s8OAWHP6mFb1qYV1RJMugzyE5ZD7IaDZn3iG41k7zuht2uN7dVwMpFIKwXhSCanRCAHupgJfaH8Xo2q5RZ2fH00l8cgkkMq'
 );
 
+/**
+ * @swagger
+ * /api/buygames/:id:
+ *   post:
+ *     summary: Purchase a game
+ *     description: Purchase a game and update the user's wallet, the game's available copies, and the game creator's earnings.
+ *     tags:
+ *       - Game Purchase
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         description: ID of the game to be purchased
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               userId:
+ *                 type: string
+ *                 description: ID of the user making the purchase
+ *     responses:
+ *       200:
+ *         description: Game purchased successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 userGamesBoughtResult:
+ *                   type: object
+ *       400:
+ *         description: Bad request, invalid IDs or insufficient funds
+ *       401:
+ *         description: Unauthorized, user is not allowed to make the purchase
+ *       403:
+ *         description: Forbidden, game creators cannot buy their own games
+ *       404:
+ *         description: Game, user, or wallet not found
+ *       500:
+ *         description: Internal server error
+ */
+
 const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 
 router.post('/:id', authentication, async (req, res) => {

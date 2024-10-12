@@ -8,6 +8,38 @@ const stripe = require('stripe')(
   'sk_test_51Q7s8OAWHP6mFb1qYV1RJMugzyE5ZD7IaDZn3iG41k7zuht2uN7dVwMpFIKwXhSCanRCAHupgJfaH8Xo2q5RZ2fH00l8cgkkMq'
 );
 
+/**
+ * @swagger
+ * /api/user/singup:
+ *   post:
+ *     summary: Register a new user
+ *     description: Creates a new user and returns authentication token.
+ *     tags:
+ *       - Users
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - name
+ *               - email
+ *               - password
+ *             properties:
+ *               name:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: User created successfully
+ *       400:
+ *         description: User already exists or invalid input
+ */
+
 router.post('/', async (req, res) => {
   try {
     const { name, email, password } = req.body;

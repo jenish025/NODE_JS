@@ -10,6 +10,62 @@ const { Games } = require('../../models/games');
 const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 
 // GET /api/userinfo/:id - Retrieve user information
+
+/**
+ * @swagger
+ * /api/userinfo/:id:
+ *   get:
+ *     summary: Get user info with bought and created games
+ *     description: Retrieve user information, including their bought and created games. Authentication is required.
+ *     tags:
+ *       - User
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: The user's ID
+ *         schema:
+ *           type: string
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved user info
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 _id:
+ *                   type: string
+ *                   description: User ID
+ *                 name:
+ *                   type: string
+ *                   description: User's name
+ *                 email:
+ *                   type: string
+ *                   description: User's email
+ *                 isAdmin:
+ *                   type: boolean
+ *                   description: Whether the user is an admin
+ *                 boughtGames:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                 createdGames:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *       400:
+ *         description: Invalid user ID
+ *       403:
+ *         description: Forbidden! User does not have permission
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Error occurred while fetching user information
+ */
+
 router.get('/:id', authentication, async (req, res) => {
   try {
     const { id } = req.params;
@@ -94,6 +150,45 @@ router.get('/games/buy/:id', authentication, async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /api/userinfo/games/create/:id:
+ *   get:
+ *     summary: Get games created by user
+ *     description: Retrieve all games created by a user. Authentication is required.
+ *     tags:
+ *       - User
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: The user's ID
+ *         schema:
+ *           type: string
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved created games
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 totalCreatedGames:
+ *                   type: integer
+ *                   description: Total number of games created
+ *                 games:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *       400:
+ *         description: Invalid user ID
+ *       403:
+ *         description: Forbidden! User does not have permission
+ *       500:
+ *         description: Error occurred while fetching created games
+ */
 router.get('/games/create/:id', authentication, async (req, res) => {
   try {
     const { id } = req.params;
