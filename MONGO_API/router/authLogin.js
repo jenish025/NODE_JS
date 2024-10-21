@@ -31,7 +31,7 @@ const { passwordCompare } = require('../controllers/passwordHashing');
  *       200:
  *         description: User successfully authenticated and token returned
  *         headers:
- *           x-auth-token:
+ *          Authorization:
  *             description: JWT authentication token
  *             schema:
  *               type: string
@@ -79,7 +79,7 @@ router.post('/', async (req, res) => {
     if (!isValid)
       return res.status(400).send({ error: 'Invalid Email or Password' });
     const token = user.generateAuthToken();
-    res.status(200).header('x-auth-token', token).send({ token });
+    res.status(200).header('Authorization', token).send({ token });
   } catch (err) {
     res.status(500).send({ error: err.message || 'Error creating game' });
   }

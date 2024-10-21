@@ -70,7 +70,7 @@ router.post('/', async (req, res) => {
 
     const token = saveUser.generateAuthToken();
     res
-      .header('x-auth-token', token)
+      .header('Authorization', token)
       .status(201)
       .send(_.pick(saveUser, ['_id', 'name', 'email']));
   } catch (err) {

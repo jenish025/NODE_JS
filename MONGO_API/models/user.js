@@ -24,7 +24,8 @@ const userSchema = new mongoose.Schema(
 userSchema.methods.generateAuthToken = function () {
   const token = jwt.sign(
     { _id: this._id, isAdmin: this.isAdmin },
-    config.get('jwtSecret')
+    // config.get('jwtSecret')
+    'gameses_jwt_secret'
   );
   return token;
 };

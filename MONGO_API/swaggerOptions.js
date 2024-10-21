@@ -18,7 +18,7 @@ const swaggerDefinition = {
     securitySchemes: {
       bearerAuth: {
         type: 'http',
-        scheme: 'x-auth-token',
+        scheme: 'bearer',
         bearerFormat: 'JWT',
       },
     },

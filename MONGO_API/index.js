@@ -12,13 +12,15 @@ const userInfo = require('./router/UserInfo/userInfo');
 const userMoney = require('./router/UserMoney/userwallet');
 const swaggerSpec = require('./swaggerOptions');
 
-if (!congfig.get('jwtSecret')) {
-  console.error('FATAL ERROR: jwtSecret is not defined');
-  process.exit(1);
-}
+// if (!congfig.get('jwtSecret')) {
+//   console.error('FATAL ERROR: jwtSecret is not defined');
+//   process.exit(1);
+// }
 
 mongoose
-  .connect('mongodb://localhost/gameses')
+  .connect(
+    'mongodb+srv://jenishm:Jenish@cluster0.tvnls.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0'
+  )
   .then(() => console.log('Connected to MongoDB'))
   .catch((err) => console.error('Could not connect to MongoDB', err));
 app.set('view engine', 'ejs');

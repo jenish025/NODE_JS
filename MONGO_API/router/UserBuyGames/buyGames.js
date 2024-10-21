@@ -188,21 +188,93 @@ router.post('/:id', authentication, async (req, res) => {
       cancel_url: 'http://localhost:3000/cancel',
     });
 
-    req.redirect(paymentStripe.url);
+    await res.redirect(paymentStripe.url);
 
-    await userWallet.save();
-    await game.save();
-    await gameCreaterWallet.save();
-    const userGamesBoughtResult = await userGamesBought.save();
+    // await userWallet.save();
+    // await game.save();
+    // await gameCreaterWallet.save();
+    // const userGamesBoughtResult = await userGamesBought.save();
 
-    res.status(200).send({
-      message: 'Game purchased successfully',
-      userGamesBoughtResult,
-    });
+    // res.status(200).send({
+    //   message: 'Game purchased successfully',
+    //   userGamesBoughtResult,
+    // });
   } catch (err) {
     console.error('Error buying game:', err);
-    res.status(500).send({ error: 'Error processing game purchase' });
+    res.status(500).send({ error: `${err}Error processing game purchase` });
   }
 });
+
+// Webhook route
+router.post(
+  'https://914f-122-179-158-94.ngrok-free.app/api/payment/webhook',
+  express.raw({ type: 'application/json' }),
+  async (req, res) => {
+    const sig = req.headers['stripe-signature'];
+    let event;
+
+    try {
+      // Replace this with your Stripe endpoint secret
+      event = stripe.webhooks.constructEvent(
+        req.body,
+        sig,
+        'whsec_Qs6oThbf4Ns54DesoPZMPPDXagD8YFsV'
+      );
+    } catch (err) {
+      return res.status(400).send(`Webhook Error: ${err.message}`);
+    }
+
+    // Handle checkout session completed
+    if (event.type === 'checkout.session.completed') {
+      const session = event.data.object;
+
+      // Extract metadata from the session
+      const { gameId, gameCreatorId, gameBoughtId } = session.metadata;
+
+      try {
+        // Find game, user wallet, and game creator's wallet
+        const game = await Games.findById(gameId);
+        const userWallet = await UserMoney.findOne({ userId: gameBoughtId });
+        const gameCreaterWallet = await UserMoney.findOne({
+          userId: gameCreatorId,
+        });
+
+        if (!game || !userWallet || !gameCreaterWallet) {
+          return res.status(404).send({ error: 'Required entities not found' });
+        }
+
+        // Deduct price from the user's wallet and add to the creator's wallet
+        userWallet.walletMoney -= game.price;
+        userWallet.moneySpent += game.price;
+        userWallet.totalMoney -= game.price;
+        gameCreaterWallet.moneyEarned += game.price;
+
+        // Reduce available copies of the game
+        game.availableCopies -= 1;
+
+        // Record the user's game purchase
+        const userGamesBought = new UserGamesBought({
+          userId: gameBoughtId,
+          gameBoughtId: gameId,
+        });
+
+        // Save all changes
+        await userWallet.save();
+        await game.save();
+        await gameCreaterWallet.save();
+        await userGamesBought.save();
+
+        res
+          .status(200)
+          .send({ message: 'Game purchase processed successfully' });
+      } catch (err) {
+        console.error('Error processing payment success:', err);
+        res.status(500).send({ error: 'Error processing game purchase' });
+      }
+    } else {
+      res.status(400).send({ error: 'Unhandled event type' });
+    }
+  }
+);
 
 module.exports = router;
